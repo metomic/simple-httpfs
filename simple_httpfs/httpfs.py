@@ -145,6 +145,7 @@ class HttpFetcher:
                 allow_redirects=True,
                 verify=self.SSL_VERIFY,
                 headers={"Range": "bytes=0-1"},
+		timeout=5
             )
             crange = head.headers["Content-Range"]
             match = re.search(r"/(\d+)$", crange)
@@ -158,7 +159,7 @@ class HttpFetcher:
     def get_data(self, url, start, end):
         headers = {"Range": "bytes={}-{}".format(start, end), "Accept-Encoding": ""}
         self.logger.info("getting %s %s %s", url, start, end)
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, timeout=5)
         self.logger.info("got %s", r.status_code)
 
         r.raise_for_status()
@@ -266,24 +267,9 @@ class HttpFs(LoggingMixIn, Operations):
                 self.lru_attrs[path] = dict(st_mode=(S_IFDIR | 0o555), st_nlink=2)
                 return self.lru_attrs[path]
 
-            if (
-                path[-2:] != ".."
-                and not path.endswith("..-journal")
-                and not path.endswith("..-wal")
-            ):
-                return dict(st_mode=(S_IFDIR | 0o555), st_nlink=2)
+            url = "{}:/{}".format(self.schema, path)
 
-            url = "{}:/{}".format(self.schema, path[:-2])
-
-            # there's an exception for the -jounral files created by SQLite
-            if not path.endswith("..-journal") and not path.endswith("..-wal"):
-                size = self.getSize(url)
-            else:
-                size = 0
-
-            # logging.info("head: {}".format(head.headers))
-            # logging.info("status_code: {}".format(head.status_code))
-            # print("url:", url, "head.url", head.url)
+            size = self.getSize(url)
 
             if size is not None:
                 self.lru_attrs[path] = dict(
@@ -333,7 +319,7 @@ class HttpFs(LoggingMixIn, Operations):
             self.total_requests += 1
 
             attr = self.getattr(path)
-            url = "{}:/{}".format(self.schema, path[:-2])
+            url = "{}:/{}".format(self.schema, path)
 
             self.logger.debug("read url: {}".format(url))
             self.logger.debug(
