@@ -267,6 +267,13 @@ class HttpFs(LoggingMixIn, Operations):
                 self.lru_attrs[path] = dict(st_mode=(S_IFDIR | 0o555), st_nlink=2)
                 return self.lru_attrs[path]
 
+            file_extensions = (".html", ".pdf", ".xlsx", ".docx", ".doc", ".csv", ".jpg", ".png", ".pptx", ".txt", ".json", ".xml", ".xls", ".eml")
+
+            if (
+                not path.lower().endswith(file_extensions)
+            ):
+                return dict(st_mode=(S_IFDIR | 0x555), st_nlink=2)
+
             url = "{}:/{}".format(self.schema, path)
 
             size = self.getSize(url)
