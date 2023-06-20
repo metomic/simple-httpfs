@@ -31,10 +31,6 @@ def main():
 
     parser.add_argument("--disk-cache-dir", default="/tmp/xx")
 
-    parser.add_argument("--lru-capacity", default=400, type=int)
-
-    parser.add_argument("--aws-profile", default=None, type=str)
-
     parser.add_argument(
         "--allow-other",
         action="store_true",
@@ -55,7 +51,8 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("simple-httpfs")
-    # logger.setLevel(logging.DEBUG)
+
+    logger.setLevel(logging.DEBUG)
 
     if args["log"]:
         hdlr = logging.FileHandler(args["log"])
@@ -70,10 +67,10 @@ def main():
     else:
         schema = args["schema"]
 
-    if schema not in ["http", "https", "ftp", "s3"]:
+    if schema not in ["http", "https"]:
         print(
             "Could not infer schema. Try specifying either http, "
-            "https or ftp using the --schema argument",
+            "https or using the --schema argument",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -95,16 +92,15 @@ Mounting HTTP Filesystem...
     fuse = FUSE(
         HttpFs(
             schema,
-            disk_cache_size=args["disk_cache_size"],
-            disk_cache_dir=args["disk_cache_dir"],
-            lru_capacity=args["lru_capacity"],
-            block_size=args["block_size"],
-            aws_profile=args["aws_profile"],
             logger=logger,
         ),
         args["mountpoint"],
         foreground=args["foreground"],
         allow_other=args["allow_other"],
+        ro=True,
+        nothreads=True,
+        max_read=262144,
+        max_write=262144
     )
 
 

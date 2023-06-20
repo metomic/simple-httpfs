@@ -1,6 +1,7 @@
 { system ? "aarch64-linux",
   pkgs ? import <nixpkgs> { inherit system; },
-  dockerTag ? "latest"
+  dockerTag ? "${system}-latest",
+  maxLayers ? 64
 }:
 
 let
@@ -20,10 +21,9 @@ in
 
 pkgs.dockerTools.streamLayeredImage {
   name = "simple-httpfs";
-  tag = "${system}-${dockerTag}";
+  tag = dockerTag;
 
-  # FIXME: Place shell / common linux utils in root of container for debugging purposes
-  contents = [ pkgs.busybox ];
+  inherit maxLayers;
 
   config = {
     Cmd = [ "${startupScript}/bin/docker-startup" ];

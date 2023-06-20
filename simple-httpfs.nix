@@ -4,8 +4,12 @@ pkgs.python3Packages.buildPythonPackage rec {
   name = "simple-httpfs";
   version = "git-master";
 
-  src = ./.;
+  src = ./python;
   doCheck = false;
 
-  propagatedBuildInputs = with pkgs.python3Packages; [ numpy boto3 diskcache fusepy requests slugid tenacity ];
+  propagatedBuildInputs = with pkgs.python3Packages; [
+    fusepy
+    requests
+    tenacity
+  ];
 }
