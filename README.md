@@ -1,5 +1,7 @@
 # Metomic's fork of simple_httpfs
 
+![Integration test workflow](https://github.com/metomic/simple-httpfs/actions/workflows/build.yml/badge.svg?event=push)
+
 A FUSE filesystem providing access to remote content as if it were a local file.
 
 See `test.nix` for an example of how this works in practice.
