@@ -1,0 +1,31 @@
+name: Run integration tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Debug CPU capabilities on worker
+      run: lscpu
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v21
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Build integration test script
+      run: nix-build test.nix -A driver
+
+    # This is slow - but functional - since we don't have nested KVM support on normal github runners
+    # (it'll use qemu tcg instead of kvm)
+    # Switching to larger runners (starting at 4 core model) would give significant speedup,
+    # since they enable nested virtualisation for those
+    - name: Run integration tests
+      run: ./result/bin/nixos-test-driver
